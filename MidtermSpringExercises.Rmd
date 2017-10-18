@@ -1,0 +1,228 @@
+
+---
+title: "Data Science Midterm Assessment"
+author: "Put Your Name Here"
+date: "Due: October 17, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+```
+
+## Instructions
+
+This is an individual assignment.  You may discuss how functions work with your classmates, but you cannot ask someone to debug/fix your code.  You have to do that!  Any failure to do so will lead to a 0 on this assignment and an Academic Honesty Violation.
+
+Make all edits in this R Markdown Document.  No code should appear in the knitted document.  You should have one code block for each question.  Upload this .Rmd (which should knit) to eLearn by the end of Tuesday, October 17.  (I recommend working on tidying the data only when a question requires it.  To make sure you can get back to working code.  Use git and commit after you have answered a question.  Questions probably shouldn't be answered in the order they are written.)
+
+## The Data
+
+The schedule for next semester can be found at <http://www2.loras.edu/admin/sprsched2.html>. (Old versions can be found at <http://www2.loras.edu/admin/fallsched.html> and <http://www2.loras.edu/admin/sprsched.html>.  These maybe useful for testing purposes for some things.)
+
+## The Tasks
+1. Import the data into R and tidy it up.  (I recommend `read_fwf()` for import.  `lead()` and `lag()` will be your friends for tidying.  The [chapter on strings](http://r4ds.had.co.nz/strings.html) may also help.)
+
+```{r}
+Spring_Schedule <- read_fwf(file = "http://www2.loras.edu/admin/sprsched2.html", fwf_widths(c(3,5,6,7,5,4,5,36,10,16,8,6,6,30), c("MAX", "USED", "WTLST", "SYN", "DEPT", "CAT", "SEC", "TITLE", "CRED", "TIME", "DAY", "BLDG", "ROOM", "INSTRUCTOR(S)")), skip = 5)
+
+#Spring Schedule Tidified
+
+Spring_Schedule_Tidy <- na.omit(Spring_Schedule)
+```
+
+
+2. Create visualizations that summarize the following:
+
+    a. Distribution of number of courses offered in each discipline.
+    
+    ```{r}
+    Spring_Schedule %>%
+      
+        group_by(DEPT) %>%
+      
+            filter(!is.na(DEPT)) %>%
+      
+                summarise(Num_Courses_Per_Discipline = n()) %>%
+      
+                    ggplot() + geom_col(mapping = aes(x = DEPT, y = Num_Courses_Per_Discipline)) + coord_flip()
+    ```
+
+    b. Distribution of level (100, 200, 300, 400, ...) of courses.
+    
+    ```{r}
+Spring_Schedule %>%
+  
+    group_by(CAT) %>%
+  
+      filter(!is.na(CAT)) %>%
+  
+          summarise(Category_Count = n()) %>%
+  
+                  ggplot() + geom_col(mapping = aes(x = CAT, y = Category_Count)) + coord_flip()
+``` 
+
+    c. Distribution of level of course by discipline.
+    
+    ```{r}
+   # Spring_Schedule %>%
+      
+     #   group_by(CAT) %>%
+      
+        #    filter(!is.na(CAT)) %>%
+      
+         #       summarise(BaseLevel = count(between(CAT, 000, 099))) %>%
+      
+           #         ggplot() + geom_col(mapping = aes(x = CAT, y = BaseLevel)) + coord_flip()
+    ```
+
+    d. Distribution of start time of courses.
+    
+    ```{r}
+    
+    Spring_Schedule %>%
+      
+        separate(TIME, into = c("Start_Time", "End_Time"), sep = "-") %>%
+      
+            group_by(Start_Time) %>%
+    
+               filter(!is.na(Start_Time)) %>%
+        
+                  summarise(Start_Time_Distribution = n()) %>% 
+    
+                      ggplot() + geom_col(mapping = aes(x = Start_Time, y = Start_Time_Distribution)) + coord_flip()
+      
+                
+         
+      
+    ```
+
+    e. Distribution of the duration of class meeting.
+    
+    ```{r}
+    Spring_Schedule %>%
+      
+        separate(TIME, into = c("Start_Time", "End_Time"), sep = "-")
+      
+           # Duration = mutate("End_Time" - "Start_Time") Need to figure out how to convert chr time to numeric time
+
+    ```
+
+    f. Distribution of start time of courses by discipline. (Only show the interesting ones.)
+
+    g. Distribution of the duration of class meeting by discipline.
+    
+    
+    ```{r}
+    select(Spring_Schedule, DEPT)
+    ```
+
+    h. Distribution of building usage.
+    
+```{r}
+Spring_Schedule %>%
+  
+    group_by(BLDG) %>%
+  
+      filter(!is.na(BLDG)) %>%
+  
+          summarise(Building_Usage = n()) %>%
+  
+                  ggplot() + geom_col(mapping = aes(x = BLDG, y = Building_Usage))
+``` 
+    
+  
+    i. Distribution of course fees. (What is the course fee if nothing is listed?)
+  
+    j. Distribution of course fees by student.
+  
+3. Create blocks that show:
+
+    a. All the courses that have space in them. (`MAX` > `USED`)
+    
+    ```{r}
+    Spring_Schedule %>%
+      
+        filter(SYN, MAX > USED)
+    ```
+    
+    b. All the courses that are `NOT OPEN TO FIRST YEAR STUDENTS`.
+    
+    ```{r}
+    Spring_Schedule %>%
+    group_by(TITLE) %>%
+    select(SYN, DEPT, CAT, SEC, TITLE, contains("TITLE"))
+    ```
+    
+    
+  
+    c. All the courses that are not `NOT OPEN TO FIRST YEAR STUDENTS`.
+    
+    ```{r}
+  #  Spring_Schedule %>%
+      
+   #     group_by(TITLE) %>%
+      
+     #        filter(TITLE, 'NOT OPEN TO FIRST YEAR STUDENTS')
+      
+       
+    ```
+     filter(TITLE, str_view('NOT OPEN TO FIRST YEAR STUDENTS'))
+  
+    d. All the courses that have space and are not `NOT OPEN TO FIRST YEAR STUDENTS`.
+    
+    ```{r}
+    
+    
+    
+    ```
+  
+    e. All the courses that have a course fee.
+    
+    ```{r}
+    #ggplot(data = Spring_Schedule) + geom_col(mapping = aes(x = BLDG)
+    ```
+    
+  
+    f. All the courses that start at a given time. (Make it clear how to specify it.)
+    ```{r}
+    #mutate()
+    ```
+  
+    g. All the courses that are on a given day. (Make it clear how to specify it.)
+  
+    h. All the courses that start at a given time on a given day.
+    
+    ```{r}
+    
+    
+#    Spring_Schedule %>%
+      
+  #          filter(Spring_Schedule, starts_with("08:00"))
+      
+    ```
+    
+  
+    i. All the graduate classes.
+    
+    ```{r}
+    
+    
+    Spring_Schedule %>%
+      
+        group_by(CAT) %>%
+      
+            filter(CAT > 600)
+      
+    ```
+    
+    
+    
+    j. All the courses with a waitlist.
+  
+4. Do something else cool.
